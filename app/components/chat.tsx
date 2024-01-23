@@ -284,6 +284,22 @@ export function PromptHints(props: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.prompts.length, selectIndex]);
 
+  //监听window iframe postMessage的消息 用于接收iframe传递过来的数据
+  const accessStore = useAccessStore();
+  useEffect(() => {
+    window.addEventListener("message", function (e) {
+      const origin = e.origin;
+      if (
+        e.data.userName &&
+        (origin === "http://localhost:8091" ||
+          origin === "http://qa.oscs.opechk.com" ||
+          origin === "https://oscs.opechk.com")
+      ) {
+        accessStore.update((access) => (access.accessCode = "nw5896.."));
+      }
+    });
+  }, []);
+
   if (noPrompts) return null;
   return (
     <div className={styles["prompt-hints"]}>
@@ -989,11 +1005,12 @@ function _Chat() {
     code: (text) => {
       if (accessStore.disableFastLink) return;
       console.log("[Command] got code from url: ", text);
-      showConfirm(Locale.URLCommand.Code + `code = ${text}`).then((res) => {
-        if (res) {
-          accessStore.update((access) => (access.accessCode = text));
-        }
-      });
+      accessStore.update((access) => (access.accessCode = text));
+      // showConfirm(Locale.URLCommand.Code + `code = ${text}`).then((res) => {
+      //   if (res) {
+      //     accessStore.update((access) => (access.accessCode = text));
+      //   }
+      // });
     },
     settings: (text) => {
       if (accessStore.disableFastLink) return;
